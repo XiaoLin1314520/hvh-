@@ -1,0 +1,33 @@
+就是修改你的重连时间为60分钟，让你不会强制掉线，对局结束之后游戏会闪退，不会获得冷却
+下面是脚本，新建一个脚本然后粘贴进去就行
+
+
+ffi.cdef[[
+    typedef void*(__thiscall* getNetChannel_t)(void*); // EngineClient 78
+    typedef void(__thiscall* set_timeout_t)(void*, float, bool); // NetChannel 31
+]]
+
+menu.Button("Anticrasher", "nmsl"):RegisterCallback(function()
+	local EngineClient = ffi.cast( ffi.typeof("void***"), utils.CreateInterface("engine.dll", "VEngineClient014") )
+	local getNetChannel = ffi.cast("getNetChannel_t", EngineClient[0][78])
+
+	local NetChannel = {}
+	do
+		function VFuncWrapper(type, index)
+			return function(...)
+				local NetChannel = ffi.cast(ffi.typeof("void***"), getNetChannel(EngineClient))
+				local fn = ffi.cast(type, NetChannel[0][index])
+				return fn(NetChannel, ...)
+			end
+		end
+		NetChannel.setTimeout = VFuncWrapper("void(__thiscall*)(void*, float, bool)", 31)
+	end
+
+    NetChannel.setTimeout(3600, false)  
+end)
+
+
+
+可以提前load，在遭遇（遭遇炸房划重点，是遭遇，不是还没炸的时候点）炸房的时候点nmsl（操你妈闪退了肯定是你iq的问题）
+
+                                                                                              ——————孤单牛马
